@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Last of Us — Checklist de Colecionáveis</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="hero">
+    <canvas id="fireflies"></canvas>
+    <div class="hero-inner">
+      <p class="kicker">Endure &amp; Survive</p>
+      <h1>Checklist de Colecionáveis</h1>
+      <p class="sub">The Last of Us Part I &amp; Part II</p>
+
+      <div class="global-progress">
+        <div class="gp-row">
+          <span>Part I</span>
+          <div class="bar"><i id="gp1-bar"></i></div>
+          <span class="pct" id="gp1-txt">0%</span>
+        </div>
+        <div class="gp-row">
+          <span>Part II</span>
+          <div class="bar"><i id="gp2-bar"></i></div>
+          <span class="pct" id="gp2-txt">0%</span>
+        </div>
+        <div class="gp-row">
+          <span>Total</span>
+          <div class="bar"><i id="gpa-bar"></i></div>
+          <span class="pct" id="gpa-txt">0%</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="part1">
+      Part I
+      <span class="count">0/0</span>
+    </button>
+    <button class="tab" data-tab="part2">
+      Part II
+      <span class="count">0/0</span>
+    </button>
+  </nav>
+
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Buscar colecionável ou capítulo..." autocomplete="off">
+    <div class="chips" id="chips"></div>
+    <div class="toggles">
+      <label><input type="checkbox" id="hideDone"> Ocultar concluídos</label>
+      <label><input type="checkbox" id="spoiler"> Modo sem spoilers</label>
+      <button class="btn" id="expandAll">Expandir / recolher</button>
+      <button class="btn" id="exportBtn">Exportar</button>
+      <button class="btn" id="importBtn">Importar</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+      <button class="btn cheat" id="cheatBtn">Cheat Mode</button>
+      <button class="btn danger" id="reset">Limpar progresso</button>
+    </div>
+  </div>
+
+  <main>
+    <section id="part1" class="game"></section>
+    <section id="part2" class="game hidden"></section>
+  </main>
+
+  <div class="modal-overlay" id="cheatModal">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Cheat Mode</h2>
+        <button class="btn" id="cheatClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <h3>Checklist</h3>
+        <p class="modal-note">Marca/desmarca itens em massa (afeta só o checklist do site, não o jogo).</p>
+        <div class="cheat-row">
+          <button class="btn" id="cheatMarkAll">Marcar tudo — jogo atual</button>
+          <button class="btn" id="cheatUnmarkAll">Desmarcar tudo</button>
+        </div>
+        <div class="cheat-row">
+          <select id="cheatCat"></select>
+          <button class="btn" id="cheatCatMark">Marcar categoria</button>
+          <button class="btn" id="cheatCatUnmark">Desmarcar</button>
+        </div>
+
+        <hr>
+
+        <h3>Save do jogo</h3>
+        <p class="modal-note warn">
+          Os arquivos <code>.save</code> do TLOU são binários proprietários e criptografados — nenhum site
+          consegue editá-los com segurança. Estas são as opções reais para alterar colecionáveis e itens
+          (engrenagens, suplementos, peças):
+        </p>
+        <ul class="save-guide">
+          <li>
+            <b>PC — Part I</b><br>
+            Saves em <code>%USERPROFILE%\Saved Games\The Last of Us Part I\users\&lt;ID&gt;\savedata</code>
+            <ul>
+              <li><b>Cheat Engine + tabela "Dev Menu"</b> (Nexus Mods / FearLess Revolution): spawna engrenagens, suplementos e peças, desbloqueia capítulos e upgrades.</li>
+              <li><b>Save 100% do NexusMods:</b> faça backup da pasta <code>savedata</code>, desative o Steam Cloud e substitua os arquivos.</li>
+            </ul>
+          </li>
+          <li>
+            <b>PC — Part II Remastered</b><br>
+            Saves em <code>Documents\The Last of Us Part II\&lt;ID&gt;\savedata</code> — mesmas opções acima (a tabela Dev Menu spawna itens pelo menu F2).
+          </li>
+          <li>
+            <b>PlayStation</b><br>
+            Saves criptografados pela Sony — só via ferramentas pagas (Save Wizard) ou saves resignados.
+          </li>
+          <li>
+            <b>Dentro do jogo</b><br>
+            Após zerar, o menu Extras desbloqueia cheats oficiais: munição infinita, um tiro por inimigo, toque mortal, modos de renderização.
+          </li>
+        </ul>
+
+        <div class="cheat-row">
+          <button class="btn" id="savePick">Analisar meu save</button>
+          <input type="file" id="saveFile" hidden>
+        </div>
+        <div id="saveInfo" class="save-info"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Progresso salvo automaticamente no navegador (<code>localStorage</code>) — nada é enviado para nenhum servidor.<br>
+    Itens nomeados seguem o jogo em inglês; capítulos sem colecionáveis aparecem apenas para referência.<br>
+    Checklist de fã, sem afiliação com a Naughty Dog ou PlayStation.
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

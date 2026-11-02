@@ -1,0 +1,9 @@
+# Arquivos de sistema do Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# OneDrive
+*.tmp
+~$*
