@@ -465,29 +465,175 @@ function init() {
     bulkSet(`.group[data-cat="${cat}"] input[type=checkbox]`, false);
   });
 
-  // analisador de save
+  // ---------- ANALISADOR DE SAVE (USR-DATA, Part I PC) ----------
+  const saveReports = document.getElementById("saveReports");
   const saveFile = document.getElementById("saveFile");
-  const saveInfo = document.getElementById("saveInfo");
+  const saveDir = document.getElementById("saveDir");
+
   document.getElementById("savePick").addEventListener("click", () => saveFile.click());
+  document.getElementById("savePickDir").addEventListener("click", () => saveDir.click());
+
   saveFile.addEventListener("change", () => {
-    const f = saveFile.files[0];
-    if (!f) return;
-    const kb = f.size / 1024;
-    const size = kb > 1024 ? (kb / 1024).toFixed(1) + " MB" : Math.round(kb) + " KB";
-    const isSave = /\.(save|sav)$/i.test(f.name);
-    const isTlou = /tlou|last.?of.?us/i.test(f.name) || isSave;
-    saveInfo.innerHTML =
-      `<b>${esc(f.name)}</b> — ${size}\n` +
-      (isSave
-        ? `Parece um arquivo de save (.save). `
-        : `<span class="warn">Extensão não reconhecida como save do TLOU (.save).</span> `) +
-      (isTlou
-        ? `O formato é binário e criptografado — o site não consegue alterá-lo.\n` +
-          `Para editar itens/colecionáveis: use Cheat Engine + tabela Dev Menu (PC) ou substitua o save por um completo, seguindo o guia acima.\n` +
-          `<b>Sempre faça backup da pasta savedata antes de mexer.</b>`
-        : `Envie um arquivo <code>.save</code> da pasta savedata do jogo para análise.`);
+    analyzeFiles([...saveFile.files]);
     saveFile.value = "";
   });
+
+  saveDir.addEventListener("change", () => {
+    const files = [...saveDir.files];
+    // nomes de slot via params.json irmãos ("Jogo salvo 5" etc.)
+    const slotNames = {};
+    files.forEach((f) => {
+      if (!/params\.json$/i.test(f.name)) return;
+      const dir = (f.webkitRelativePath || "").split("/").slice(0, -1).join("/");
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const j = JSON.parse(r.result);
+          if (j.subTitle) slotNames[dir] = j.subTitle;
+        } catch {}
+      };
+      r.readAsText(f);
+    });
+    const saves = files.filter((f) => /usr-data$/i.test(f.name));
+    if (!saves.length) {
+      saveReports.innerHTML = `<div class="save-card err">Nenhum <code>USR-DATA</code> encontrado na pasta selecionada.</div>`;
+      saveDir.value = "";
+      return;
+    }
+    analyzeFiles(saves, slotNames);
+    saveDir.value = "";
+  });
+
+  async function analyzeFiles(files, slotNames = {}) {
+    saveReports.innerHTML = "";
+    for (const f of files) {
+      const card = document.createElement("div");
+      card.className = "save-card";
+      try {
+        const buf = await f.arrayBuffer();
+        const dir = (f.webkitRelativePath || "").split("/").slice(0, -1).join("/");
+        const rep = TLOUSave.parse(buf, f.name);
+        rep.slotName = slotNames[dir] || null;
+        card.appendChild(renderSaveReport(rep));
+      } catch (err) {
+        card.classList.add("err");
+        card.innerHTML = `<b>${esc(f.name)}</b> — ${esc(err.message)}`;
+      }
+      saveReports.appendChild(card);
+    }
+  }
+
+  function renderSaveReport(r) {
+    const el = document.createElement("div");
+    const kb = r.fileSize / 1024;
+    const size = kb > 1024 ? (kb / 1024).toFixed(1) + " MB" : Math.round(kb) + " KB";
+
+    const badges = [];
+    if (r.saveType) badges.push(`<span class="badge">${esc(r.saveType)}</span>`);
+    if (r.slotName) badges.push(`<span class="badge">${esc(r.slotName)}</span>`);
+    if (r.completed) badges.push(`<span class="badge done">CONCLUÍDO</span>`);
+    if (r.ngPlus) badges.push(`<span class="badge ng">${esc(r.ngPlus)}</span>`);
+
+    const rows = [];
+    if (r.isProfile) {
+      rows.push(`<div class="sv-row"><span>Tipo</span><b>Save de perfil (sem progresso de campanha)</b></div>`);
+    } else {
+      if (r.chapter) rows.push(`<div class="sv-row"><span>Capítulo</span><b>${esc(r.chapter)}</b></div>`);
+      if (r.chapterIndex != null) rows.push(`<div class="sv-row"><span>Índice do capítulo</span><b>${r.chapterIndex}</b></div>`);
+      if (r.difficulty) rows.push(`<div class="sv-row"><span>Dificuldade</span><b>${esc(r.difficulty)}</b></div>`);
+      if (r.playtimeText || r.playtimeSeconds != null) {
+        const secs = r.playtimeSeconds;
+        const h = secs != null ? `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}min ${secs % 60}s` : null;
+        rows.push(`<div class="sv-row"><span>Tempo de jogo</span><b>${esc(r.playtimeText || h)}</b></div>`);
+      }
+      if (r.collectedTotal != null)
+        rows.push(`<div class="sv-row"><span>Colecionáveis</span><b>${r.collectedTotal} coletados</b></div>`);
+    }
+
+    // inventário legível
+    const inv = r.inventory.filter((e) => e.label);
+    let invHtml = "";
+    if (inv.length) {
+      invHtml =
+        `<div class="sv-inv">` +
+        inv.map((e) => `<span class="sv-item">${esc(e.label)} <b>${e.value}</b></span>`).join("") +
+        `</div>`;
+      const unknown = r.inventory.length - inv.length;
+      if (unknown > 0)
+        invHtml += `<div class="sv-note">${unknown} registro(s) interno(s) não identificado(s).</div>`;
+    }
+
+    // manuais detectados no save
+    let manHtml = "";
+    if (r.manualsFound.length) {
+      manHtml =
+        `<div class="sv-group"><span class="sv-label">Manuais detectados (${r.manualsFound.length}/12)</span>` +
+        `<div class="sv-inv">` +
+        r.manualsFound.map((m) => `<span class="sv-item ok">${esc(m.name)}</span>`).join("") +
+        `</div></div>`;
+    }
+    if (r.toolLevel > 0) {
+      manHtml += `<div class="sv-group"><span class="sv-label">Ferramentas</span><div class="sv-inv"><span class="sv-item ok">nível ${r.toolLevel}/5</span></div></div>`;
+    }
+
+    const canMark = r.manualsFound.length || r.toolLevel > 0;
+    el.innerHTML =
+      `<div class="sv-head"><b>${esc(r.slotName || r.fileName)}</b><span class="sv-size">${size}</span></div>` +
+      `<div class="sv-badges">${badges.join("")}</div>` +
+      rows.join("") +
+      (r.isProfile ? "" : `<div class="sv-group"><span class="sv-label">Inventário</span>${invHtml || `<div class="sv-note">sem registros de inventário</div>`}</div>`) +
+      manHtml +
+      `<div class="sv-note">Artefatos, quadrinhos e pingentes usam chaves geradas por partida — o estado por-item não é decodificável (o total acima vem do save).</div>` +
+      (canMark
+        ? `<button class="btn mini sv-mark">Marcar detectados no checklist (Part I)</button>`
+        : "");
+
+    const btn = el.querySelector(".sv-mark");
+    if (btn) btn.addEventListener("click", () => markDetected(r));
+    return el;
+  }
+
+  // marca no checklist os itens detectáveis do save (manuais + ferramentas)
+  function markDetected(r) {
+    const marked = [];
+    r.manualsFound.forEach((m) => {
+      const id = findItemId("part1", "manuals", m.name);
+      if (id) {
+        store.checked[id] = true;
+        marked.push(m.name);
+      }
+    });
+    // tool-level N → marca "Ferramenta Nv. 1..N" na ordem dos capítulos
+    const toolNames = ["Ferramenta Nv. 1", "Ferramenta Nv. 2", "Ferramenta Nv. 3", "Ferramenta Nv. 4", "Ferramenta Nv. 5"];
+    for (let i = 0; i < Math.min(r.toolLevel, 5); i++) {
+      const id = findItemId("part1", "tools", toolNames[i]);
+      if (id) {
+        store.checked[id] = true;
+        marked.push(toolNames[i]);
+      }
+    }
+    if (!marked.length) {
+      alert("Nenhum item correspondente encontrado no checklist.");
+      return;
+    }
+    save();
+    syncInputs();
+    refresh();
+    applySearch();
+    alert(`${marked.length} itens marcados no checklist:\n\n${marked.join("\n")}`);
+  }
+
+  function findItemId(gkey, cat, name) {
+    const g = DATA[gkey];
+    for (let ci = 0; ci < g.chapters.length; ci++) {
+      const items = g.chapters[ci].items?.[cat];
+      if (!items) continue;
+      const expanded = expandItems(items);
+      const i = expanded.findIndex((it) => it.name === name);
+      if (i >= 0) return itemId(gkey, ci, cat, i);
+    }
+    return null;
+  }
 
   document.getElementById("reset").addEventListener("click", () => {
     const g = store.prefs.tab;

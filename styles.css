@@ -588,6 +588,93 @@ body.hide-done .item.done { display: none; }
 .save-info b { color: var(--text); }
 .save-info .warn { color: #e0b56b; }
 
+/* ---------- SAVE REPORT ---------- */
+.save-reports { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+
+.save-card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 0.83rem;
+}
+
+.save-card.err {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.sv-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sv-head b { font-size: 0.95rem; }
+.sv-size { color: var(--muted); font-size: 0.72rem; white-space: nowrap; }
+
+.sv-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+
+.badge {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 2px 9px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.badge.done { color: var(--accent); border-color: var(--accent-dim); }
+.badge.ng { color: #e0b56b; border-color: #8a6d3b; }
+
+.sv-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-top: 1px solid var(--line);
+}
+
+.sv-row span { color: var(--muted); }
+.sv-row b { font-weight: 500; text-align: right; }
+
+.sv-group { margin-top: 10px; }
+
+.sv-label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.sv-inv { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.sv-item {
+  font-size: 0.75rem;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+
+.sv-item b { color: var(--accent); margin-left: 2px; }
+.sv-item.ok { border-color: var(--accent-dim); color: var(--accent); }
+
+.sv-note {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.sv-mark { margin-top: 10px; }
+
 /* ---------- FOOTER ---------- */
 footer {
   border-top: 1px solid var(--line);

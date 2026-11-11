@@ -87,40 +87,42 @@
 
         <hr>
 
-        <h3>Save do jogo</h3>
+        <h3>Save do jogo — análise</h3>
+        <p class="modal-note">
+          Solte o arquivo <code>USR-DATA</code> (sem extensão — aparece como tipo "File" no Windows) de
+          <b>The Last of Us Part I (PC)</b> e veja capítulo, tempo de jogo, colecionáveis,
+          inventário e manuais — 100% local, nada é enviado.
+          Os saves ficam em <code>%USERPROFILE%\Saved Games\The Last of Us Part I\users\&lt;ID&gt;\savedata\SAVEFILE*\USR-DATA</code>
+        </p>
+        <div class="cheat-row">
+          <button class="btn" id="savePick">Analisar save(s)</button>
+          <button class="btn" id="savePickDir">Analisar pasta savedata</button>
+          <input type="file" id="saveFile" hidden multiple>
+          <input type="file" id="saveDir" hidden webkitdirectory>
+        </div>
+        <div id="saveReports" class="save-reports"></div>
+
+        <hr>
+
+        <h3>Editar o save</h3>
         <p class="modal-note warn">
-          Os arquivos <code>.save</code> do TLOU são binários proprietários e criptografados — nenhum site
-          consegue editá-los com segurança. Estas são as opções reais para alterar colecionáveis e itens
-          (engrenagens, suplementos, peças):
+          O site <b>lê</b> o save, mas não escreve: o checksum em <code>0x590</code> ainda não foi
+          revertido, então bytes alterados corrompem o arquivo. As opções reais de cheat:
         </p>
         <ul class="save-guide">
           <li>
-            <b>PC — Part I</b><br>
-            Saves em <code>%USERPROFILE%\Saved Games\The Last of Us Part I\users\&lt;ID&gt;\savedata</code>
-            <ul>
-              <li><b>Cheat Engine + tabela "Dev Menu"</b> (Nexus Mods / FearLess Revolution): spawna engrenagens, suplementos e peças, desbloqueia capítulos e upgrades.</li>
-              <li><b>Save 100% do NexusMods:</b> faça backup da pasta <code>savedata</code>, desative o Steam Cloud e substitua os arquivos.</li>
-            </ul>
+            <b>PC — Cheat Engine + tabela "Dev Menu"</b> (Nexus Mods / FearLess Revolution): spawna engrenagens, suplementos e peças, desbloqueia capítulos e upgrades.
           </li>
           <li>
-            <b>PC — Part II Remastered</b><br>
-            Saves em <code>Documents\The Last of Us Part II\&lt;ID&gt;\savedata</code> — mesmas opções acima (a tabela Dev Menu spawna itens pelo menu F2).
+            <b>Save 100% do NexusMods:</b> faça backup da pasta <code>savedata</code>, desative o Steam Cloud e substitua os arquivos.
           </li>
           <li>
-            <b>PlayStation</b><br>
-            Saves criptografados pela Sony — só via ferramentas pagas (Save Wizard) ou saves resignados.
+            <b>Part II / PlayStation:</b> saves com camadas de criptografia diferentes — ainda não cobertos.
           </li>
           <li>
-            <b>Dentro do jogo</b><br>
-            Após zerar, o menu Extras desbloqueia cheats oficiais: munição infinita, um tiro por inimigo, toque mortal, modos de renderização.
+            <b>Dentro do jogo:</b> após zerar, o menu Extras desbloqueia cheats oficiais: munição infinita, um tiro por inimigo, toque mortal, modos de renderização.
           </li>
         </ul>
-
-        <div class="cheat-row">
-          <button class="btn" id="savePick">Analisar meu save</button>
-          <input type="file" id="saveFile" hidden>
-        </div>
-        <div id="saveInfo" class="save-info"></div>
       </div>
     </div>
   </div>
@@ -132,6 +134,7 @@
   </footer>
 
   <script src="data.js"></script>
+  <script src="saveparse.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
